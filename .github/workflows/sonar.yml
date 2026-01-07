@@ -9,6 +9,9 @@ on:
 jobs:
   sonarqube:
     runs-on: ubuntu-latest
+    env:
+      SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
     steps:
       - uses: actions/checkout@v4
       - name: Set up Node.js
@@ -18,12 +21,13 @@ jobs:
       - name: Install dependencies
         run: npm install
       - name: SonarQube Scan
+        if: env.SONAR_HOST_URL != '' && env.SONAR_TOKEN != ''
         uses: SonarSource/sonarcloud-github-action@v2
         with:
           args: >
             -Dsonar.projectKey=website-frontend
-            -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }}
-            -Dsonar.login=${{ secrets.SONAR_TOKEN }}
+            -Dsonar.host.url=${{ env.SONAR_HOST_URL }}
+            -Dsonar.login=${{ env.SONAR_TOKEN }}
       - name: Set version env
         run: |
           if [[ "$GITHUB_REF" == refs/tags/* ]]; then
