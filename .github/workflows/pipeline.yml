@@ -46,6 +46,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       
+      - name: Clean up previous artifacts
+        run: rm -rf trivy-results.sarif checkov-results.sarif
+      
       - name: Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@0.31.0
         with:
@@ -68,13 +71,13 @@ jobs:
           framework: all
           soft_fail: true
           output_format: sarif
-          output_file_path: checkov-results.sarif
+          output_file_path: ./checkov-report
       
       - name: Upload Checkov results to GitHub Security
         uses: github/codeql-action/upload-sarif@v4
         if: always()
         with:
-          sarif_file: 'checkov-results.sarif'
+          sarif_file: './checkov-report/results_sarif.sarif'
           category: 'checkov'
   
   code-quality:
