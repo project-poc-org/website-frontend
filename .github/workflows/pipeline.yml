@@ -47,7 +47,10 @@ jobs:
       - uses: actions/checkout@v4
       
       - name: Clean up previous artifacts
-        run: rm -rf trivy-results.sarif checkov-results.sarif
+        run: |
+          rm -rf trivy-results.sarif checkov-results.sarif checkov-report || true
+          find . -name 'trivy-results.sarif' -delete || true
+          find . -name 'checkov-report' -type d -exec rm -rf {} + || true
       
       - name: Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@0.31.0
