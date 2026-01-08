@@ -8,8 +8,7 @@ on:
 
 jobs:
   sonarqube:
-    runs-on:
-      group: projects-poc
+    runs-on: self-hosted
     env:
       SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
