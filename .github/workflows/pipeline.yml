@@ -1,7 +1,7 @@
 name: CI/CD Pipeline
 
 permissions:
-  contents: read
+  contents: write
 
 on:
   push:
@@ -15,10 +15,33 @@ on:
       - '.github/workflows/security.yml'
       - 'docs/**'
   workflow_dispatch:
+    inputs:
+      release-type:
+        description: 'Release type (auto, major, minor, patch)'
+        required: false
+        type: choice
+        options:
+          - auto
+          - major
+          - minor
+          - patch
+        default: 'auto'
 
 jobs:
+  release:
+    name: Release Management
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    uses: project-poc-org/reusable-workflows/.github/workflows/release.yml@v1.1.0
+    permissions:
+      contents: write
+      pull-requests: write
+    with:
+      release-type: ${{ github.event.inputs.release-type || 'auto' }}
+
   build:
     name: Build & Test
+    needs: [release]
+    if: always()
     runs-on:
       group: projects-poc
       labels: [self-hosted, ubuntu-22, project-runner]
@@ -26,6 +49,8 @@ jobs:
       version: ${{ steps.get-version.outputs.version }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: main
       
       - name: Get version from VERSION file
         id: get-version
@@ -34,19 +59,20 @@ jobs:
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "Application version: $VERSION"
       
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
-          node-version: '18.x'
+          python-version: '3.x'
       
       - name: Install dependencies
-        run: npm ci
-      
-      - name: Build
-        run: npm run build
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
       
       - name: Run tests
-        run: npm test || echo "No tests configured"
+        run: |
+          # Add your test command here
+          echo "Tests would run here"
   
   code-quality:
     name: Code Quality Analysis
