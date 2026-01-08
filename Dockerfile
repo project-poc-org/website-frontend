@@ -11,8 +11,9 @@ COPY package.json package-lock.json* ./
 # Install ALL dependencies (including devDependencies for build)
 RUN npm ci
 
-# Copy source code
-COPY . .
+# Copy source code (explicit dirs to avoid sensitive data)
+COPY public/ ./public/
+COPY src/ ./src/
 
 # Build production bundle with optimizations
 ENV NODE_ENV=production
