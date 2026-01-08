@@ -9,7 +9,8 @@ function App() {
   useEffect(() => {
     const fetchApiVersion = async () => {
       try {
-        const response = await fetch("http://127.0.0.1:8000/version");
+        const apiUrl = process.env.REACT_APP_API_URL || "http://localhost:8000";
+        const response = await fetch(`${apiUrl}/version`);
         if (!response.ok) {
           throw new Error(`HTTP ${response.status}`);
         }
