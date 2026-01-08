@@ -1,5 +1,8 @@
 name: CI/CD Pipeline
 
+permissions:
+  contents: read
+
 on:
   push:
     branches: [ main ]
@@ -36,23 +39,43 @@ jobs:
       group: projects-poc
       labels: [self-hosted, ubuntu-22, project-runner]
     needs: build
+    permissions:
+      security-events: write
+      actions: read
+      contents: read
     steps:
       - uses: actions/checkout@v4
       
       - name: Trivy vulnerability scanner
-        uses: aquasecurity/trivy-action@master
+        uses: aquasecurity/trivy-action@0.31.0
         with:
           scan-type: 'fs'
           scan-ref: '.'
           format: 'sarif'
           output: 'trivy-results.sarif'
       
+      - name: Upload Trivy results to GitHub Security
+        uses: github/codeql-action/upload-sarif@v4
+        if: always()
+        with:
+          sarif_file: 'trivy-results.sarif'
+          category: 'trivy'
+      
       - name: Checkov scan
-        uses: bridgecrewio/checkov-action@master
+        uses: bridgecrewio/checkov-action@v12
         with:
           directory: .
           framework: all
           soft_fail: true
+          output_format: sarif
+          output_file_path: checkov-results.sarif
+      
+      - name: Upload Checkov results to GitHub Security
+        uses: github/codeql-action/upload-sarif@v4
+        if: always()
+        with:
+          sarif_file: 'checkov-results.sarif'
+          category: 'checkov'
   
   code-quality:
     name: Code Quality Analysis
