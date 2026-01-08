@@ -75,6 +75,9 @@ EOF
 # Copy built files from builder stage
 COPY --from=builder --chown=appuser:appuser /app/build /usr/share/nginx/html
 
+# Remove write permissions for security
+RUN chmod -R a-w /usr/share/nginx/html
+
 # Switch to non-root user for security
 USER appuser
 
